@@ -10,7 +10,7 @@
 ## Demo Video
 <div align="center">
 <video width="1000" controls autoplay loop muted markdown="1">
-    <source src="docs/short_drive.mp4" type="video/mp4">
+    <source src="./docs/short_drive.mp4" type="video/mp4">
 </video>
 </div>
 
@@ -22,6 +22,11 @@ Vision-based end-to-end driving models trained by imitation learning can lead to
 
 ## Getting started
 
+We will go over the required hardware and software, code installation, data collection and cleanup, and finally on to training your model and validating it.
+
+> [!NOTE]
+> This repository inherits the majority of its code from the [CIL++ repository](https://github.com/yixiao1/CILv2_multiview).
+
 ### Requirements
 
  * **Hardware:** A computer with a dedicated GPU capable of running Unreal Engine.
@@ -29,15 +34,20 @@ Vision-based end-to-end driving models trained by imitation learning can lead to
 
 ### Code and CARLA Installation
 
-The easiest way to get started is with [`miniconda`](https://docs.anaconda.com/free/miniconda/). After installation, clone and move to the root directory of this repository, and run the following lines in a terminal:
+The easiest way to get started is with [`miniconda`](https://docs.anaconda.com/free/miniconda/). Install it if you don't have it, and run the following to setup the code and environment we will use:
 
 ```bash
+# Clone this repository
+git clone https://github.com/PDillis/guiding-e2e.git
+cd guiding-e2e
+
+# Create the environment and install packages
 conda create -n cilv2 python=3.7
 conda activate cilv2
 pip3 install -r requirements.txt
 ```
 
-Another requirement of the code is to have CARLA `0.9.13` installed locally and its `docker` container. For the former, you can download (and extract) the simulator [here](https://github.com/carla-simulator/carla/releases/tag/0.9.13). For the latter, make sure you have properly installed `docker` and run the following in a terminal:
+Another requirement of the code is to have CARLA `0.9.13` installed locally, as well as its `docker` container. For the former, you can download (and extract) the simulator [here](https://github.com/carla-simulator/carla/releases/tag/0.9.13). For the latter, make sure you have properly installed `docker` and run the following in a terminal:
 
 ```bash
 docker pull carlasim/carla:0.9.13
@@ -52,7 +62,7 @@ To run the code, we will need to set some environment variables. Make sure you a
 ```bash
 export CARLAHOME=/path/to/local/carla  # Root of the local CARLA 0.9.13
 export PYTHONPATH=${CARLAHOME}/PythonAPI/carla/:${CARLAHOME}/PythonAPI/carla/dist/carla-0.9.13-py3.7-linux-x86_64.egg:`pwd`/run_CARLA_driving:`pwd`/scenario_runner:`pwd`
-export TRAINING_RESULTS_ROOT=`pwd`/../VisionTFM
+export TRAINING_RESULTS_ROOT=`pwd`/VisionTFM  # Change this if you want to use another disk with more space
 export DATASET_PATH=/path/to/dataset/root  # Can be general and complemented in the `config.yml` file for the experiment
 export SENSOR_SAVE_PATH=${DATASET_PATH}/driving_record  # Recommended to save the evaluation next to your dataset
 export DRIVING_TEST_ROOT=`pwd`/run_CARLA_driving/
@@ -61,11 +71,11 @@ export DRIVING_TEST_ROOT=`pwd`/run_CARLA_driving/
 
 ## Data Collection
 
-See the [Data collection](./docs/data_collection.md) guide for how to properly set up the agent that will collect the training and validation data.
+Refer to the [Data collection](./docs/data_collection.md) guide for how to properly set up the agent that will collect the training and validation data.
 
 ## Data Cleanup
 
-See the [Data cleanup](./docs/data_cleanup.md) guide for how to prepare the collected data for training a new agent. 
+Refer to the [Data cleanup](./docs/data_cleanup.md) guide for how to prepare the collected data for training a new agent. 
 
 ## Training and Validation
 
@@ -79,9 +89,54 @@ TBD
 
 ### Running an experiment
 
-<!-- To train the defined experiment above -->
+To train the defined experiment above, we can do so either with a single GPU or multiple GPUs. If available, it's recommended to use multiple GPUs in order to accelerate the training.
 
-TBD
+For a single GPU with ID `0`, we run:
+
+```bash
+python3 main.py --process-type=train_val --gpus 0 --folder CILv2 --exp CILv2_3cam_smalltest
+```
+
+For multiple GPUs, we need their IDs and total number of GPUs. For example, in a cluster with many GPUs, we wish to use three GPUs with IDs `0,3,5`, so we run:
+
+```bash
+torchrun --nproc_per_node=3 main.py --gpus 0,3,5 --folder CILv2 --exp CILv2_3cam_smalltest
+```
+
+Results will be saved in the `TRAINING_RESULTS_ROOT` directory, separated by `folder` and `experiment`, that is, `$TRAINING_RESULTS_ROOT/_results/{folder}/{exp}`. 
+
+### Running validation
+
+Finally, in order to 
+
+#### `NoCrash`
+
+For models trained with single lane data, we typically test their capabilites using the `NoCrash` benchmark defined in the [CILRS paper](https://arxiv.org/abs/1904.08980). Basically, we define some routes that the model should complete within a certain time limit, and should a crash be detected, we stop the 
+
+To run the `NoCrash` benchmark, we have defined some scripts. There are two maps available, each with different scenarios (number of agents roaming in the map):
+
+| | **`Town01`** | **`Town02`** |
+| --- |   ---    |    ---   |
+| **Scenario** | `empty`, `regular`, `dense` | `empty`, `regular`, `busy` |
+
+Thus, if we wish to run the `NoCrash` benchmark in `Town01` under new weather conditions with a `regular` scenario for the checkpoint `45` of the `CILv2_3cam_smalltest` experiment above, using the GPU with ID `0`, we run the following:
+
+```bash
+./run_CARLA_driving/scripts/run_evaluation/CILv2/nocrash_newweather_Town01_lbc.sh 0 CILv2 CLIv2_3cam_smalltest 45 regular
+```
+
+Note that this allows you to run multiple checkpoints in parallel using different GPUs, should they be available. The results of the driving will be saved in `./run_CARLA_driving/results` (Route Completion, Driving Score, etc.). By default, a random seed of `0` will be used to spawn and control the other agents, but we can change this to another one by e.g. adding `--random-seed 42` in the above command. 
+
+If you wish to save the driving during this evaluation (such as the one in the [demo video](#demo-video)), then you also need to add the flag  `--save-driving-vision`. This will save each frame to the `$SENSOR_SAVE_PATH` defined above. Naturally, this will make the driving run much slower, so use it for models you wish to better visualize.
+
+For running the benchmark in `Town02`, the command will be the same, but the script to be run is:
+
+```bash
+./run_CARLA_driving/scripts/run_evaluation/CILv2/nocrash_newweathertown_Town02_lbc.sh 0 CILv2 CLIv2_3cam_smalltest 45 regular --random-seed 42 --save-driving-vision
+```
+
+#### Offline Leaderboard
+
 
 
 ## Citation

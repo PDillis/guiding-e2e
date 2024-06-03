@@ -18,18 +18,18 @@
 Vision-based end-to-end driving models trained by imitation learning can lead to affordable solutions for autonomous driving. However, training these well-performing models usually requires a huge amount of data, while still lacking explicit and intuitive activation maps to reveal the inner workings of these models while driving. In this paper, we study how to guide the attention of these models to improve their driving quality and obtain more intuitive activation maps by adding a loss term during training using salient semantic maps. In contrast to previous work, our method does not require these salient semantic maps to be available during testing time, as well as removing the need to modify the model's architecture to which it is applied. We perform tests using perfect and noisy salient semantic maps with encouraging results in both, the latter of which is inspired by possible errors encountered with real data. Using CIL++ as a representative state-of-the-art model and the CARLA simulator with its standard benchmarks, we conduct experiments that show the effectiveness of our method in training better autonomous driving models, especially when data and computational resources are scarce.
 
 ## Checklist
+* [x] Ensure environment can be created with the `requirements.txt` file
 * [ ] Finish the documentations of:
   * [ ] Data collection
-  * [ ] Data cleaning
+  * [ ] Data preparation
   * [ ] Training and validation
-* [x] Ensure environment can be created with the `requirements.txt` file
 * [ ] Complete README
 * [ ] Migrate all code
 * [ ] Run training and validation with a minimal dataset
 
 ## Getting started
 
-We will go over the required hardware and software, code installation, data collection and cleanup, and finally on to training your model and validating it.
+We will go over the required hardware and software, code installation, data collection and preparation, and finally on to training and validating your model.
 
 > [!NOTE]
 > This repository inherits the majority of its code from the [CIL++ repository](https://github.com/yixiao1/CILv2_multiview).
@@ -80,7 +80,7 @@ export DRIVING_TEST_ROOT=`pwd`/run_CARLA_driving/
 
 Refer to the [Data collection](./docs/data_collection.md) guide for how to properly set up the agent that will collect the training and validation data.
 
-## Data Cleanup
+## Data Preparation
 
 Refer to the [Data preparation](./docs/data_preparation.md) guide for how to properly clean and set up the collected data for training a new agent. 
 

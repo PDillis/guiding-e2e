@@ -2,6 +2,9 @@
 
 After [properly collecting a dataset](./data_collection.md), it must be prepared so that we may train a model with it. This implies multiple parts, which we explain in the following:
 
+> [!NOTE]
+> Given that we usually deal with a large amount of file numbers, we use multithreading in the majority of the following code (except for [deleting files](#clean-route)). We do this via using either [`multiprocessing`](https://docs.python.org/3/library/multiprocessing.html) or [`concurrent.futures`](https://docs.python.org/3/library/concurrent.futures.html). Please refer to their documentation for more information.
+
 ## Fix the driving command
 
 This is the first thing that should be done. The command given to the ego vehicle during data collection (i.e., follow the lane, turn left, turn right, etc.) is sometimes given too late, which may lead to a model not performing the action in time. 
@@ -19,10 +22,10 @@ This will create for each `can_bus%06d.json` file a new `cmd_fix_can_bus%06d.jso
 If the collected images are at a higher resolution than what we wish to train the model with, we can resize them offline so that training takes less time. We do so by running:
 
 ```bash
-python3 data_analysis/data_tools.py resize-dataset --dataset-path=/path/to/your/dataset --res=300x300 --img-ext=png --processes-per-cpu=4
+python3 data_analysis/data_tools.py resize-dataset --dataset-path=/path/to/your/dataset --res=300x300 --img-ext=png --processes-per-cpu=1
 ```
 
-This will create, for each of the RGB images in the dataset, an equivalent one with same frame number and image extension. For example, if we have `rgb_central001900.png` at resolution `640x640`, the command above will create `resized_rgb_central001900.png` at `300x300` resolution. The number of processes should speed things up, but these will depend on your hardware configuration.
+This will create, for each of the RGB images in the dataset, an equivalent one with same frame number and image extension. For example, if we have `rgb_central001900.png` at resolution `640x640`, the command above will create `resized_rgb_central001900.png` at `300x300` resolution. The number of processes should speed things up, but these will depend on your hardware configuration. By default, we launch one process per available CPU core.
 
 |  `rgb_central001900.png` |  `resized_rgb_central001900.png` |
 | --- | --- |
@@ -70,7 +73,7 @@ Sometimes, previously-collected datasets may contain a semantic segmentation mas
 
 
 ```bash
-python3 data_analysis/data_tools.py prepare-ss --dataset-path=/path/to/your/dataset --processes-per-cpu=4
+python3 data_analysis/data_tools.py prepare-ss --dataset-path=/path/to/your/dataset --processes-per-cpu=1
 ```
 
 If we wish to print more to the console, we can add the `--debug` flag in the above command. This should result in the modification of all semantic segmentation images to follow the Cityscapes palette as follows:
@@ -82,7 +85,7 @@ If we wish to print more to the console, we can add the `--debug` flag in the ab
 With the collected RGB, semantic segmentation, and depth images, we can proceed to create the *synthetic attention masks*. We have thus defined the following script:
 
 ```bash
-python3 data_analysis/data_tools.py create-virtual-attentions --dataset-path=/path/to/your/dataset --max-depth=20.0 --min-depth=2.3 --processes-per-cpu=4
+python3 data_analysis/data_tools.py create-virtual-attentions --dataset-path=/path/to/your/dataset --max-depth=20.0 --min-depth=2.3 --processes-per-cpu=1
 ```
 
 If we provide either (or both) of `--max-depth` and `--min-depth`, then we will use the depth cameras to create binary masks for objects that are within these ranges. The default value of `--min-depth=2.3` will filter out the hood of the ego vehicle, but this should be fixed should the vehicle model is changed (we use the `"vehicle.lincoln.mkz_2017"`). 
@@ -99,7 +102,7 @@ We settled with `--noise-cat=2` for our experiments, as we feel is the most natu
 
 | `--noise-cat=0` | `--noise-cat=1` | `--noise-cat=2` | `--noise-cat=3` |
 | :-: | :-: | :-: | :-: |
-| ![](./sample_data/virtual_attention_central_001900.jpg) | TBD | TBD | TBD |
+| ![](./sample_data/virtual_attention_central_001900.jpg) | TODO | TODO | TODO |
 
 ### Inference with pre-trained models
 
@@ -115,7 +118,7 @@ The `--rgb-prefixes` will be the prefix for the RGB file-names that the model wi
 
 TBD: batch size
 
-In a nutshell, the code does as follows: 
+In a nutshell, the code does the following: 
     
 1. We infer the semantic segmentation image with the pre-trained model
 2. Translate the labels from Mapillary to Cityscapes (using some pre-defined switches; found in `data_analysis/data_tools.py`)

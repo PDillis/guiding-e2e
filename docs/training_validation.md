@@ -7,7 +7,7 @@ We will define a configuration file for training a model. In it, we will define 
 
 Some experiments are provided in the `configs` directory.
 
-TBD
+TODO
 
 ### Training an experiment
 

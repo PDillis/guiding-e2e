@@ -19,11 +19,11 @@ wget https://api.wandb.ai/files/iccv21-roach/trained-models/1929isj0/ckpt/ckpt_1
 We also provide a configuration for the above checkpoint, whose name contains the checkpoint number: `config11833344.json`. This file (and all similar ones obtained during training of a model) will contain the following:
 
 ```json
-
+# TODO
 ```
 
 This way, all that is needed now is to set the experiments (maps, sensors, vehicles, pedestrians, weather conditions) and run the proper scripts for data collection.
 
 ## Setting the experiments
 
-As a simple example, let's set up a 
+TODO

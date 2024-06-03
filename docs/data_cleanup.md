@@ -34,11 +34,8 @@ python3 data_analysis/data_tools.py visualize-routes --dataset-path=/path/to/you
 
 If we don't specify the output directory (`--out`), then the script will create a `videos` subdirectory in the provided `--dataset-path`. An example of the created videos in a dataset collected in `Town04` with `WetNoon` weather condition is shown here:
 
-<div align="center">
-<video width="600" controls autoplay loop muted markdown="1">
-    <source src="Town04_WetNoon_route00011_faster.mp4" type="video/mp4">
-</video>
-</div>
+[Town04_R11_WN](https://github.com/PDillis/guiding-e2e/assets/24496178/ec276372-80de-4130-837d-9d0eeb2d4147)
+
 
 We will have the most important information read from the `cmd_fix_can_bus` data: at the top, the frame number, current command to follow, and current speed in meters per second. In the bottom are the two actions we will learn to predict: the steering angle and acceleration (the latter being the difference between the throttle and brake values in the can bus data). 
 

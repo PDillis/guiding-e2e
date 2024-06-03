@@ -8,17 +8,25 @@
 -----------------------------------------
 
 ## Demo Video
-<div align="center">
-<video width="1000" controls autoplay loop muted markdown="1">
-    <source src="./docs/short_drive.mp4" type="video/mp4">
-</video>
-</div>
+
+[[Demo Video]](https://github.com/PDillis/guiding-e2e/assets/24496178/fe64d7fd-0f92-4d0e-924f-f5fa31a9b3b3)
 
 -----------------------------------------
 
 ## About
 
 Vision-based end-to-end driving models trained by imitation learning can lead to affordable solutions for autonomous driving. However, training these well-performing models usually requires a huge amount of data, while still lacking explicit and intuitive activation maps to reveal the inner workings of these models while driving. In this paper, we study how to guide the attention of these models to improve their driving quality and obtain more intuitive activation maps by adding a loss term during training using salient semantic maps. In contrast to previous work, our method does not require these salient semantic maps to be available during testing time, as well as removing the need to modify the model's architecture to which it is applied. We perform tests using perfect and noisy salient semantic maps with encouraging results in both, the latter of which is inspired by possible errors encountered with real data. Using CIL++ as a representative state-of-the-art model and the CARLA simulator with its standard benchmarks, we conduct experiments that show the effectiveness of our method in training better autonomous driving models, especially when data and computational resources are scarce.
+
+## Checklist
+* [ ] Finish the documentations of:
+  * [ ] Data collection
+  * [ ] Data cleaning
+  * [ ] Experiment configuration setup
+  * [ ] Training and validation
+* [x] Ensure environment can be created with the `requirements.txt` file
+* [ ] Complete README
+* [ ] Migrate all code
+* [ ] Run training and validation with a minimal dataset
 
 ## Getting started
 
@@ -122,12 +130,12 @@ To run the `NoCrash` benchmark, we have defined some scripts. There are two maps
 Thus, if we wish to run the `NoCrash` benchmark in `Town01` under new weather conditions with a `regular` scenario for the checkpoint `45` of the `CILv2_3cam_smalltest` experiment above, using the GPU with ID `0`, we run the following:
 
 ```bash
-./run_CARLA_driving/scripts/run_evaluation/CILv2/nocrash_newweather_Town01_lbc.sh 0 CILv2 CLIv2_3cam_smalltest 45 regular
+./run_CARLA_driving/scripts/run_evaluation/CILv2/nocrash_newweather_Town01_lbc.sh 0 CILv2 CILv2_3cam_smalltest 45 regular
 ```
 
 Note that this allows you to run multiple checkpoints in parallel using different GPUs, should they be available. The results of the driving will be saved in `./run_CARLA_driving/results` (Route Completion, Driving Score, etc.). By default, a random seed of `0` will be used to spawn and control the other agents, but we can change this to another one by e.g. adding `--random-seed 42` in the above command. 
 
-If you wish to save the driving during this evaluation (such as the one in the [demo video](#demo-video)), then you also need to add the flag  `--save-driving-vision`. This will save each frame to the `$SENSOR_SAVE_PATH` defined above. Naturally, this will make the driving run much slower, so use it for models you wish to better visualize.
+If you wish to save the driving during this evaluation (such as the one in the [demo video](#demo-video), although that one showcases a route of the [offline Leaderboard](#offline-leaderboard) found below), then you also need to add the flag  `--save-driving-vision`. This will save each frame to the `$SENSOR_SAVE_PATH` defined above. Naturally, this will make the driving run much slower, so use it for models you wish to better visualize.
 
 For running the benchmark in `Town02`, the command will be the same, but the script to be run is:
 
@@ -137,7 +145,13 @@ For running the benchmark in `Town02`, the command will be the same, but the scr
 
 #### Offline Leaderboard
 
+For models trained with multi-lane data (such as `Town03` onwards), it'd be more interesting to test the model in more complex scenarios than those found in the `NoCrash` benchmark above. For these, we have adapted the [offline Leaderboard benchmark](https://github.com/zhejz/carla-roach?tab=readme-ov-file#the-offline-leaderboard) for validating and testing the models under new weather conditions. Note that the available towns are `Town03` and `Town05` and there is a different script for each (to keep things separate, but they could be joined into the same script). As above, we run the following:
 
+```bash
+./run_CARLA_driving/scripts/leaderboard_Town05.py 0 CILv2 CILv2_3cam_smalltest 45
+```
+
+Note that the number of pedestrians and vehicles is now fixed to the same amount found in the Leaderboard. As before, the results will be saved in `./run_CARLA_driving/results`, and we can change the random seed or save the driving with the respective commands: `--random-seed=42` and `--save-driving-vision`. A complete route is shown in the [demo video](#demo-video).
 
 ## Citation
 
